@@ -1,0 +1,20 @@
+-- This is an example SQLX file to help you learn the basics of Dataform.
+-- Visit https://cloud.google.com/dataform/docs/sql-workflows for more information on how to configure your SQL workflow.
+
+-- You can delete this file, then commit and push your changes to your repository when you are ready.
+
+-- Config blocks allow you to configure, document, and test your data assets.
+config {
+  type: "table", // Creates a view in BigQuery. Try changing to "table" instead.
+  schema: "bl_raw"
+}
+
+-- The rest of a SQLX file contains your SELECT statement used to create the table.
+
+create or replace external table  `bl_raw.r_kna1` WITH PARTITION COLUMNS (mandt INT64)
+WITH CONNECTION `832507990423.us-central1.biglake1` 
+OPTIONS (
+  format = 'PARQUET',
+  uris = ['gs://pranavc-biglake/kna1/*'],
+  hive_partition_uri_prefix = 'gs://pranavc-biglake/kna1'
+)

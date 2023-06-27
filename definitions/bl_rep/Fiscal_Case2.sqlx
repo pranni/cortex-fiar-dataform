@@ -1,0 +1,21 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  schema: "bl_rep",
+}
+
+CREATE OR REPLACE FUNCTION ${self()}(
+  ip_mandt INT64, ip_periv STRING, ip_date DATE
+) AS
+
+((
+    SELECT
+      CONCAT(CAST(Bdatj AS INT) + CAST(Reljr AS INT), Poper)
+    FROM
+      ${ref("t009b")}
+    WHERE
+      CAST(Mandt AS INT64) = Ip_Mandt
+      AND Periv = Ip_Periv
+      AND Bdatj = CAST(EXTRACT(YEAR FROM Ip_Date) AS STRING)
+      AND Bumon = CAST(CAST(Ip_Date AS STRING FORMAT('MM')) AS STRING)
+))

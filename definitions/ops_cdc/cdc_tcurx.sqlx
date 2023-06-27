@@ -1,0 +1,36 @@
+config { type: "operations" ,
+         tags: ["cdc"]
+
+}
+
+MERGE ${ref("tcurx")} T
+USING (
+  WITH 
+    S1 AS (
+      SELECT * FROM ${ref("r_tcurx")} s1
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("tcurx")})
+    ),
+    T1 AS (
+      SELECT CURRKEY, MAX(recordstamp) AS recordstamp
+      FROM ${ref("r_tcurx")}
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("tcurx")})
+      GROUP BY CURRKEY
+    )
+  SELECT S1.*
+  FROM S1
+  INNER JOIN T1
+    ON S1.`CURRKEY` = T1.`CURRKEY`
+      AND S1.recordstamp = T1.recordstamp
+  ) S
+ON S.`CURRKEY` = T.`CURRKEY`
+WHEN NOT MATCHED THEN
+  INSERT (`currkey`, `currdec`, `recordstamp`)
+  VALUES (`currkey`, `currdec`, `recordstamp`)
+WHEN MATCHED AND S.operation_flag = 'D' AND S.is_deleted = true THEN
+  DELETE
+WHEN MATCHED AND S.operation_flag = 'U' THEN
+  UPDATE SET T.`currkey` = S.`currkey`, T.`currdec` = S.`currdec`, T.`recordstamp` = S.`recordstamp`;

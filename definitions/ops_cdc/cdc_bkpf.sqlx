@@ -1,0 +1,36 @@
+config { type: "operations" ,
+         tags: ["cdc"] 
+}
+
+
+MERGE ${ref("bkpf")} T
+USING (
+  WITH 
+    S1 AS (
+      SELECT * FROM ${ref("r_bkpf")} s1
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("bkpf")})
+    ),
+    T1 AS (
+      SELECT BELNR, BUKRS, GJAHR, MANDT, MAX(recordstamp) AS recordstamp
+      FROM ${ref("r_bkpf")}
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("bkpf")})
+      GROUP BY BELNR, BUKRS, GJAHR, MANDT
+    )
+  SELECT S1.*
+  FROM S1
+  INNER JOIN T1
+    ON S1.`BELNR` = T1.`BELNR` AND S1.`BUKRS` = T1.`BUKRS` AND S1.`GJAHR` = T1.`GJAHR` AND S1.`MANDT` = T1.`MANDT`
+      AND S1.recordstamp = T1.recordstamp
+  ) S
+ON S.`BELNR` = T.`BELNR` AND S.`BUKRS` = T.`BUKRS` AND S.`GJAHR` = T.`GJAHR` AND S.`MANDT` = T.`MANDT`
+WHEN NOT MATCHED THEN
+  INSERT (`mandt`, `bukrs`, `belnr`, `gjahr`, `blart`, `bldat`, `budat`, `monat`, `cpudt`, `cputm`, `aedat`, `upddt`, `wwert`, `usnam`, `tcode`, `bvorg`, `xblnr`, `dbblg`, `stblg`, `stjah`, `bktxt`, `waers`, `kursf`, `kzwrs`, `kzkrs`, `bstat`, `xnetb`, `frath`, `xrueb`, `glvor`, `grpid`, `dokid`, `arcid`, `iblar`, `awtyp`, `awkey`, `fikrs`, `hwaer`, `hwae2`, `hwae3`, `kurs2`, `kurs3`, `basw2`, `basw3`, `umrd2`, `umrd3`, `xstov`, `stodt`, `xmwst`, `curt2`, `curt3`, `kuty2`, `kuty3`, `xsnet`, `ausbk`, `xusvr`, `duefl`, `awsys`, `txkrs`, `ctxkrs`, `lotkz`, `xwvof`, `stgrd`, `ppnam`, `ppdat`, `pptme`, `pptcod`, `brnch`, `numpg`, `adisc`, `xref1_hd`, `xref2_hd`, `xreversal`, `reindat`, `rldnr`, `ldgrp`, `propmano`, `xblnr_alt`, `vatdate`, `doccat`, `xsplit`, `cash_alloc`, `follow_on`, `xreorg`, `subset`, `kurst`, `kursx`, `kur2x`, `kur3x`, `xmca`, `resubmission`, `sapf15_status`, `psoty`, `psoak`, `psoks`, `psosg`, `psofn`, `intform`, `intdate`, `psobt`, `psozl`, `psodt`, `psotm`, `fm_umart`, `ccins`, `ccnum`, `ssblk`, `batch`, `sname`, `sampled`, `exclude_flag`, `blind`, `offset_status`, `offset_refer_dat`, `penrc`, `knumv`, `pybastyp`, `pybasno`, `pybasdat`, `pyiban`, `inwardno_hd`, `inwarddt_hd`, `recordstamp`)
+  VALUES (`mandt`, `bukrs`, `belnr`, `gjahr`, `blart`, `bldat`, `budat`, `monat`, `cpudt`, `cputm`, `aedat`, `upddt`, `wwert`, `usnam`, `tcode`, `bvorg`, `xblnr`, `dbblg`, `stblg`, `stjah`, `bktxt`, `waers`, `kursf`, `kzwrs`, `kzkrs`, `bstat`, `xnetb`, `frath`, `xrueb`, `glvor`, `grpid`, `dokid`, `arcid`, `iblar`, `awtyp`, `awkey`, `fikrs`, `hwaer`, `hwae2`, `hwae3`, `kurs2`, `kurs3`, `basw2`, `basw3`, `umrd2`, `umrd3`, `xstov`, `stodt`, `xmwst`, `curt2`, `curt3`, `kuty2`, `kuty3`, `xsnet`, `ausbk`, `xusvr`, `duefl`, `awsys`, `txkrs`, `ctxkrs`, `lotkz`, `xwvof`, `stgrd`, `ppnam`, `ppdat`, `pptme`, `pptcod`, `brnch`, `numpg`, `adisc`, `xref1_hd`, `xref2_hd`, `xreversal`, `reindat`, `rldnr`, `ldgrp`, `propmano`, `xblnr_alt`, `vatdate`, `doccat`, `xsplit`, `cash_alloc`, `follow_on`, `xreorg`, `subset`, `kurst`, `kursx`, `kur2x`, `kur3x`, `xmca`, `resubmission`, `sapf15_status`, `psoty`, `psoak`, `psoks`, `psosg`, `psofn`, `intform`, `intdate`, `psobt`, `psozl`, `psodt`, `psotm`, `fm_umart`, `ccins`, `ccnum`, `ssblk`, `batch`, `sname`, `sampled`, `exclude_flag`, `blind`, `offset_status`, `offset_refer_dat`, `penrc`, `knumv`, `pybastyp`, `pybasno`, `pybasdat`, `pyiban`, `inwardno_hd`, `inwarddt_hd`, `recordstamp`)
+WHEN MATCHED AND S.operation_flag = 'D' AND S.is_deleted = true THEN
+  DELETE
+WHEN MATCHED AND S.operation_flag = 'U' THEN
+  UPDATE SET T.`mandt` = S.`mandt`, T.`bukrs` = S.`bukrs`, T.`belnr` = S.`belnr`, T.`gjahr` = S.`gjahr`, T.`blart` = S.`blart`, T.`bldat` = S.`bldat`, T.`budat` = S.`budat`, T.`monat` = S.`monat`, T.`cpudt` = S.`cpudt`, T.`cputm` = S.`cputm`, T.`aedat` = S.`aedat`, T.`upddt` = S.`upddt`, T.`wwert` = S.`wwert`, T.`usnam` = S.`usnam`, T.`tcode` = S.`tcode`, T.`bvorg` = S.`bvorg`, T.`xblnr` = S.`xblnr`, T.`dbblg` = S.`dbblg`, T.`stblg` = S.`stblg`, T.`stjah` = S.`stjah`, T.`bktxt` = S.`bktxt`, T.`waers` = S.`waers`, T.`kursf` = S.`kursf`, T.`kzwrs` = S.`kzwrs`, T.`kzkrs` = S.`kzkrs`, T.`bstat` = S.`bstat`, T.`xnetb` = S.`xnetb`, T.`frath` = S.`frath`, T.`xrueb` = S.`xrueb`, T.`glvor` = S.`glvor`, T.`grpid` = S.`grpid`, T.`dokid` = S.`dokid`, T.`arcid` = S.`arcid`, T.`iblar` = S.`iblar`, T.`awtyp` = S.`awtyp`, T.`awkey` = S.`awkey`, T.`fikrs` = S.`fikrs`, T.`hwaer` = S.`hwaer`, T.`hwae2` = S.`hwae2`, T.`hwae3` = S.`hwae3`, T.`kurs2` = S.`kurs2`, T.`kurs3` = S.`kurs3`, T.`basw2` = S.`basw2`, T.`basw3` = S.`basw3`, T.`umrd2` = S.`umrd2`, T.`umrd3` = S.`umrd3`, T.`xstov` = S.`xstov`, T.`stodt` = S.`stodt`, T.`xmwst` = S.`xmwst`, T.`curt2` = S.`curt2`, T.`curt3` = S.`curt3`, T.`kuty2` = S.`kuty2`, T.`kuty3` = S.`kuty3`, T.`xsnet` = S.`xsnet`, T.`ausbk` = S.`ausbk`, T.`xusvr` = S.`xusvr`, T.`duefl` = S.`duefl`, T.`awsys` = S.`awsys`, T.`txkrs` = S.`txkrs`, T.`ctxkrs` = S.`ctxkrs`, T.`lotkz` = S.`lotkz`, T.`xwvof` = S.`xwvof`, T.`stgrd` = S.`stgrd`, T.`ppnam` = S.`ppnam`, T.`ppdat` = S.`ppdat`, T.`pptme` = S.`pptme`, T.`pptcod` = S.`pptcod`, T.`brnch` = S.`brnch`, T.`numpg` = S.`numpg`, T.`adisc` = S.`adisc`, T.`xref1_hd` = S.`xref1_hd`, T.`xref2_hd` = S.`xref2_hd`, T.`xreversal` = S.`xreversal`, T.`reindat` = S.`reindat`, T.`rldnr` = S.`rldnr`, T.`ldgrp` = S.`ldgrp`, T.`propmano` = S.`propmano`, T.`xblnr_alt` = S.`xblnr_alt`, T.`vatdate` = S.`vatdate`, T.`doccat` = S.`doccat`, T.`xsplit` = S.`xsplit`, T.`cash_alloc` = S.`cash_alloc`, T.`follow_on` = S.`follow_on`, T.`xreorg` = S.`xreorg`, T.`subset` = S.`subset`, T.`kurst` = S.`kurst`, T.`kursx` = S.`kursx`, T.`kur2x` = S.`kur2x`, T.`kur3x` = S.`kur3x`, T.`xmca` = S.`xmca`, T.`resubmission` = S.`resubmission`, T.`sapf15_status` = S.`sapf15_status`, T.`psoty` = S.`psoty`, T.`psoak` = S.`psoak`, T.`psoks` = S.`psoks`, T.`psosg` = S.`psosg`, T.`psofn` = S.`psofn`, T.`intform` = S.`intform`, T.`intdate` = S.`intdate`, T.`psobt` = S.`psobt`, T.`psozl` = S.`psozl`, T.`psodt` = S.`psodt`, T.`psotm` = S.`psotm`, T.`fm_umart` = S.`fm_umart`, T.`ccins` = S.`ccins`, T.`ccnum` = S.`ccnum`, T.`ssblk` = S.`ssblk`, T.`batch` = S.`batch`, T.`sname` = S.`sname`, T.`sampled` = S.`sampled`, T.`exclude_flag` = S.`exclude_flag`, T.`blind` = S.`blind`, T.`offset_status` = S.`offset_status`, T.`offset_refer_dat` = S.`offset_refer_dat`, T.`penrc` = S.`penrc`, T.`knumv` = S.`knumv`, T.`pybastyp` = S.`pybastyp`, T.`pybasno` = S.`pybasno`, T.`pybasdat` = S.`pybasdat`, T.`pyiban` = S.`pyiban`, T.`inwardno_hd` = S.`inwardno_hd`, T.`inwarddt_hd` = S.`inwarddt_hd`, T.`recordstamp` = S.`recordstamp`;

@@ -1,0 +1,36 @@
+config { type: "operations" ,
+         tags: ["cdc"]
+
+}
+
+MERGE ${ref("tcurr")} T
+USING (
+  WITH 
+    S1 AS (
+      SELECT * FROM ${ref("r_tcurr")} s1
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("tcurr")})
+    ),
+    T1 AS (
+      SELECT MANDT, KURST, TCURR, FCURR, GDATU, MAX(recordstamp) AS recordstamp
+      FROM ${ref("r_tcurr")}
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("tcurr")})
+      GROUP BY MANDT, KURST, TCURR, FCURR, GDATU
+    )
+  SELECT S1.*
+  FROM S1
+  INNER JOIN T1
+    ON S1.`MANDT` = T1.`MANDT` AND S1.`KURST` = T1.`KURST` AND S1.`TCURR` = T1.`TCURR` AND S1.`FCURR` = T1.`FCURR` AND S1.`GDATU` = T1.`GDATU`
+      AND S1.recordstamp = T1.recordstamp
+  ) S
+ON S.`MANDT` = T.`MANDT` AND S.`KURST` = T.`KURST` AND S.`TCURR` = T.`TCURR` AND S.`FCURR` = T.`FCURR` AND S.`GDATU` = T.`GDATU`
+WHEN NOT MATCHED THEN
+  INSERT (`mandt`, `kurst`, `fcurr`, `tcurr`, `gdatu`, `ukurs`, `ffact`, `tfact`, `recordstamp`)
+  VALUES (`mandt`, `kurst`, `fcurr`, `tcurr`, `gdatu`, `ukurs`, `ffact`, `tfact`, `recordstamp`)
+WHEN MATCHED AND S.operation_flag = 'D' AND S.is_deleted = true THEN
+  DELETE
+WHEN MATCHED AND S.operation_flag = 'U' THEN
+  UPDATE SET T.`mandt` = S.`mandt`, T.`kurst` = S.`kurst`, T.`fcurr` = S.`fcurr`, T.`tcurr` = S.`tcurr`, T.`gdatu` = S.`gdatu`, T.`ukurs` = S.`ukurs`, T.`ffact` = S.`ffact`, T.`tfact` = S.`tfact`, T.`recordstamp` = S.`recordstamp`;

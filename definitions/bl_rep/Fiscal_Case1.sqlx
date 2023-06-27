@@ -1,0 +1,14 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  schema: "bl_rep",
+}
+
+CREATE OR REPLACE FUNCTION ${self()}(
+  Ip_Mandt INT64, Ip_Periv STRING, Ip_Date DATE) AS
+(
+  (
+    SELECT
+    CONCAT(EXTRACT(YEAR FROM Ip_Date), LPAD(CAST(EXTRACT(MONTH FROM Ip_Date) AS STRING), 3, '0')) AS Op_Period
+  )
+);

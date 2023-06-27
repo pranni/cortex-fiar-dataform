@@ -1,0 +1,36 @@
+config { type: "operations" ,
+         tags: ["cdc"]
+
+}
+
+MERGE ${ref("t001")} T
+USING (
+  WITH 
+    S1 AS (
+      SELECT * FROM ${ref("r_t001")} s1
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("t001")})
+    ),
+    T1 AS (
+      SELECT BUKRS, MANDT, MAX(recordstamp) AS recordstamp
+      FROM ${ref("r_t001")}
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("t001")})
+      GROUP BY BUKRS, MANDT
+    )
+  SELECT S1.*
+  FROM S1
+  INNER JOIN T1
+    ON S1.`BUKRS` = T1.`BUKRS` AND S1.`MANDT` = T1.`MANDT`
+      AND S1.recordstamp = T1.recordstamp
+  ) S
+ON S.`BUKRS` = T.`BUKRS` AND S.`MANDT` = T.`MANDT`
+WHEN NOT MATCHED THEN
+  INSERT (`mandt`, `bukrs`, `butxt`, `ort01`, `land1`, `waers`, `spras`, `ktopl`, `waabw`, `periv`, `kokfi`, `rcomp`, `adrnr`, `stceg`, `fikrs`, `xfmco`, `xfmcb`, `xfmca`, `txjcd`, `fmhrdate`, `buvar`, `fdbuk`, `xfdis`, `xvalv`, `xskfn`, `kkber`, `xmwsn`, `mregl`, `xgsbe`, `xgjrv`, `xkdft`, `xprod`, `xeink`, `xjvaa`, `xvvwa`, `xslta`, `xfdmm`, `xfdsd`, `xextb`, `ebukr`, `ktop2`, `umkrs`, `bukrs_glob`, `fstva`, `opvar`, `xcovr`, `txkrs`, `wfvar`, `xbbbf`, `xbbbe`, `xbbba`, `xbbko`, `xstdt`, `mwskv`, `mwska`, `impda`, `xnegp`, `xkkbi`, `wt_newwt`, `pp_pdate`, `infmt`, `fstvare`, `kopim`, `dkweg`, `offsacct`, `bapovar`, `xcos`, `xcession`, `xsplt`, `surccm`, `dtprov`, `dtamtc`, `dttaxc`, `dttdsp`, `dtaxr`, `xvatdate`, `pst_per_var`, `xbbsc`, `f_obsolete`, `fm_derive_acc`, `recordstamp`)
+  VALUES (`mandt`, `bukrs`, `butxt`, `ort01`, `land1`, `waers`, `spras`, `ktopl`, `waabw`, `periv`, `kokfi`, `rcomp`, `adrnr`, `stceg`, `fikrs`, `xfmco`, `xfmcb`, `xfmca`, `txjcd`, `fmhrdate`, `buvar`, `fdbuk`, `xfdis`, `xvalv`, `xskfn`, `kkber`, `xmwsn`, `mregl`, `xgsbe`, `xgjrv`, `xkdft`, `xprod`, `xeink`, `xjvaa`, `xvvwa`, `xslta`, `xfdmm`, `xfdsd`, `xextb`, `ebukr`, `ktop2`, `umkrs`, `bukrs_glob`, `fstva`, `opvar`, `xcovr`, `txkrs`, `wfvar`, `xbbbf`, `xbbbe`, `xbbba`, `xbbko`, `xstdt`, `mwskv`, `mwska`, `impda`, `xnegp`, `xkkbi`, `wt_newwt`, `pp_pdate`, `infmt`, `fstvare`, `kopim`, `dkweg`, `offsacct`, `bapovar`, `xcos`, `xcession`, `xsplt`, `surccm`, `dtprov`, `dtamtc`, `dttaxc`, `dttdsp`, `dtaxr`, `xvatdate`, `pst_per_var`, `xbbsc`, `f_obsolete`, `fm_derive_acc`, `recordstamp`)
+WHEN MATCHED AND S.operation_flag = 'D' AND S.is_deleted = true THEN
+  DELETE
+WHEN MATCHED AND S.operation_flag = 'U' THEN
+  UPDATE SET T.`mandt` = S.`mandt`, T.`bukrs` = S.`bukrs`, T.`butxt` = S.`butxt`, T.`ort01` = S.`ort01`, T.`land1` = S.`land1`, T.`waers` = S.`waers`, T.`spras` = S.`spras`, T.`ktopl` = S.`ktopl`, T.`waabw` = S.`waabw`, T.`periv` = S.`periv`, T.`kokfi` = S.`kokfi`, T.`rcomp` = S.`rcomp`, T.`adrnr` = S.`adrnr`, T.`stceg` = S.`stceg`, T.`fikrs` = S.`fikrs`, T.`xfmco` = S.`xfmco`, T.`xfmcb` = S.`xfmcb`, T.`xfmca` = S.`xfmca`, T.`txjcd` = S.`txjcd`, T.`fmhrdate` = S.`fmhrdate`, T.`buvar` = S.`buvar`, T.`fdbuk` = S.`fdbuk`, T.`xfdis` = S.`xfdis`, T.`xvalv` = S.`xvalv`, T.`xskfn` = S.`xskfn`, T.`kkber` = S.`kkber`, T.`xmwsn` = S.`xmwsn`, T.`mregl` = S.`mregl`, T.`xgsbe` = S.`xgsbe`, T.`xgjrv` = S.`xgjrv`, T.`xkdft` = S.`xkdft`, T.`xprod` = S.`xprod`, T.`xeink` = S.`xeink`, T.`xjvaa` = S.`xjvaa`, T.`xvvwa` = S.`xvvwa`, T.`xslta` = S.`xslta`, T.`xfdmm` = S.`xfdmm`, T.`xfdsd` = S.`xfdsd`, T.`xextb` = S.`xextb`, T.`ebukr` = S.`ebukr`, T.`ktop2` = S.`ktop2`, T.`umkrs` = S.`umkrs`, T.`bukrs_glob` = S.`bukrs_glob`, T.`fstva` = S.`fstva`, T.`opvar` = S.`opvar`, T.`xcovr` = S.`xcovr`, T.`txkrs` = S.`txkrs`, T.`wfvar` = S.`wfvar`, T.`xbbbf` = S.`xbbbf`, T.`xbbbe` = S.`xbbbe`, T.`xbbba` = S.`xbbba`, T.`xbbko` = S.`xbbko`, T.`xstdt` = S.`xstdt`, T.`mwskv` = S.`mwskv`, T.`mwska` = S.`mwska`, T.`impda` = S.`impda`, T.`xnegp` = S.`xnegp`, T.`xkkbi` = S.`xkkbi`, T.`wt_newwt` = S.`wt_newwt`, T.`pp_pdate` = S.`pp_pdate`, T.`infmt` = S.`infmt`, T.`fstvare` = S.`fstvare`, T.`kopim` = S.`kopim`, T.`dkweg` = S.`dkweg`, T.`offsacct` = S.`offsacct`, T.`bapovar` = S.`bapovar`, T.`xcos` = S.`xcos`, T.`xcession` = S.`xcession`, T.`xsplt` = S.`xsplt`, T.`surccm` = S.`surccm`, T.`dtprov` = S.`dtprov`, T.`dtamtc` = S.`dtamtc`, T.`dttaxc` = S.`dttaxc`, T.`dttdsp` = S.`dttdsp`, T.`dtaxr` = S.`dtaxr`, T.`xvatdate` = S.`xvatdate`, T.`pst_per_var` = S.`pst_per_var`, T.`xbbsc` = S.`xbbsc`, T.`f_obsolete` = S.`f_obsolete`, T.`fm_derive_acc` = S.`fm_derive_acc`, T.`recordstamp` = S.`recordstamp`;

@@ -1,0 +1,6 @@
+config {
+  type: "table", 
+  schema: "bl_cdc"
+}
+
+create table if not exists bl_cdc.tcurr as ( select * except(operation_flag, is_deleted) from ${ref('r_tcurr')} limit 0 )

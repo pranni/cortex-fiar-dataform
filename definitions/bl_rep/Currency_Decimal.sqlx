@@ -1,0 +1,16 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  schema: "bl_rep",
+}
+
+CREATE OR REPLACE FUNCTION ${self()}(
+  ip_curr STRING
+) AS
+
+((
+  SELECT
+    currdec
+  FROM ${ref("tcurx")}
+  WHERE currkey = ip_curr
+))

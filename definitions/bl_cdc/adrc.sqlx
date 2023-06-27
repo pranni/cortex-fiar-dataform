@@ -1,0 +1,7 @@
+
+config {
+  type: "table", // Creates a table in BigQuery.
+  schema: "bl_cdc"
+}
+
+create table if not exists bl_cdc.adrc as ( select * except(operation_flag, is_deleted) from ${ref("r_adrc")} limit 0 )

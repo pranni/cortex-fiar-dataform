@@ -1,0 +1,36 @@
+config { type: "operations" ,
+         tags: ["cdc"]
+
+}
+
+MERGE ${ref("t009b")} T
+USING (
+  WITH 
+    S1 AS (
+      SELECT * FROM ${ref("r_t009b")} s1
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("t009b")})
+    ),
+    T1 AS (
+      SELECT PERIV, BUMON, BDATJ, MANDT, BUTAG, MAX(recordstamp) AS recordstamp
+      FROM ${ref("r_t009b")}
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("t009b")})
+      GROUP BY PERIV, BUMON, BDATJ, MANDT, BUTAG
+    )
+  SELECT S1.*
+  FROM S1
+  INNER JOIN T1
+    ON S1.`PERIV` = T1.`PERIV` AND S1.`BUMON` = T1.`BUMON` AND S1.`BDATJ` = T1.`BDATJ` AND S1.`MANDT` = T1.`MANDT` AND S1.`BUTAG` = T1.`BUTAG`
+      AND S1.recordstamp = T1.recordstamp
+  ) S
+ON S.`PERIV` = T.`PERIV` AND S.`BUMON` = T.`BUMON` AND S.`BDATJ` = T.`BDATJ` AND S.`MANDT` = T.`MANDT` AND S.`BUTAG` = T.`BUTAG`
+WHEN NOT MATCHED THEN
+  INSERT (`mandt`, `periv`, `bdatj`, `bumon`, `butag`, `poper`, `reljr`, `recordstamp`)
+  VALUES (`mandt`, `periv`, `bdatj`, `bumon`, `butag`, `poper`, `reljr`, `recordstamp`)
+WHEN MATCHED AND S.operation_flag = 'D' AND S.is_deleted = true THEN
+  DELETE
+WHEN MATCHED AND S.operation_flag = 'U' THEN
+  UPDATE SET T.`mandt` = S.`mandt`, T.`periv` = S.`periv`, T.`bdatj` = S.`bdatj`, T.`bumon` = S.`bumon`, T.`butag` = S.`butag`, T.`poper` = S.`poper`, T.`reljr` = S.`reljr`, T.`recordstamp` = S.`recordstamp`;

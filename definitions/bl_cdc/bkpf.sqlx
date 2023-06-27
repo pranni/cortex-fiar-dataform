@@ -1,0 +1,6 @@
+config {
+  type: "table", // Creates a table in BigQuery. Try changing to "table" instead.
+  schema: "bl_cdc"
+}
+
+create table if not exists bl_cdc.bkpf as ( select * except(operation_flag, is_deleted) from ${ref('r_bkpf')} limit 0 )

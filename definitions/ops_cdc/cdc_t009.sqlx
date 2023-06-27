@@ -1,0 +1,36 @@
+config { type: "operations" ,
+         tags: ["cdc"]
+
+}
+
+MERGE ${ref("t009")} T
+USING (
+  WITH 
+    S1 AS (
+      SELECT * FROM ${ref("r_t009")} s1
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("t009")})
+    ),
+    T1 AS (
+      SELECT MANDT, PERIV, MAX(recordstamp) AS recordstamp
+      FROM ${ref("r_t009")}
+      WHERE recordstamp >= (
+        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+        FROM ${ref("t009")})
+      GROUP BY MANDT, PERIV
+    )
+  SELECT S1.*
+  FROM S1
+  INNER JOIN T1
+    ON S1.`MANDT` = T1.`MANDT` AND S1.`PERIV` = T1.`PERIV`
+      AND S1.recordstamp = T1.recordstamp
+  ) S
+ON S.`MANDT` = T.`MANDT` AND S.`PERIV` = T.`PERIV`
+WHEN NOT MATCHED THEN
+  INSERT (`mandt`, `periv`, `xkale`, `xjabh`, `anzbp`, `anzsp`, `xweek`, `fyofb`, `fyofe`, `xweekquart`, `recordstamp`)
+  VALUES (`mandt`, `periv`, `xkale`, `xjabh`, `anzbp`, `anzsp`, `xweek`, `fyofb`, `fyofe`, `xweekquart`, `recordstamp`)
+WHEN MATCHED AND S.operation_flag = 'D' AND S.is_deleted = true THEN
+  DELETE
+WHEN MATCHED AND S.operation_flag = 'U' THEN
+  UPDATE SET T.`mandt` = S.`mandt`, T.`periv` = S.`periv`, T.`xkale` = S.`xkale`, T.`xjabh` = S.`xjabh`, T.`anzbp` = S.`anzbp`, T.`anzsp` = S.`anzsp`, T.`xweek` = S.`xweek`, T.`fyofb` = S.`fyofb`, T.`fyofe` = S.`fyofe`, T.`xweekquart` = S.`xweekquart`, T.`recordstamp` = S.`recordstamp`;
