@@ -1,0 +1,7 @@
+config {
+  type: "table", 
+  schema: "bl_cdc",
+  tags : ["billing"] 
+}
+
+create table if not exists bl_cdc.vbrp as ( select * except(operation_flag, is_deleted) from ${ref('r_vbrp')} limit 0 )

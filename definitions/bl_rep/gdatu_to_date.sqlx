@@ -1,0 +1,10 @@
+config {
+  type: "operations",
+  hasOutput: true,
+  schema: "bl_rep",
+}
+
+CREATE OR REPLACE FUNCTION ${self()}(gdatu STRING) AS
+(
+  (SELECT PARSE_DATE('%Y%m%d', CAST(99999999 - CAST(gdatu AS INT) AS STRING)))
+)
